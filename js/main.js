@@ -1,178 +1,38 @@
-// main.js - lógica de interações, vídeos e animações 3D
+// Objeto para armazenar as funções de inicialização de cada seção const sectionInitializers = {};
 
-// Mapeamento de inicializadores por seção
-const inits = {
-  section1: initSection1,
-  section2: initSection2,
-  section3: initSection3,
-  section4: initSection4,
-  section5: initSection5
+// === Lógica de Inicialização para a SEÇÃO 1 === sectionInitializers.initSection1 = function() { const sloganMain = document.querySelector('.hero-section-1 .slogan-main'); const sloganSub = document.querySelector('.hero-section-1 .slogan-sub'); const btn = document.querySelector('.hero-section-1 .btn'); const videoBackground = document.getElementById('video-background-1'); const heroContent = document.querySelector('.hero-section-1 .hero-content'); if (videoBackground.dataset.initialized === 'true') return; videoBackground.dataset.initialized = 'true';
+
+// Fallback button const showFallbackButton = () => { if (document.getElementById('fallback-button-section1')) return; const fallbackButton = document.createElement('button'); fallbackButton.id = 'fallback-button-section1'; fallbackButton.className = 'video-fallback-button'; fallbackButton.textContent = 'Tocar Vídeo'; fallbackButton.onclick = () => { videoBackground.play().then(() => fallbackButton.remove()).catch(() => {}); }; heroContent.appendChild(fallbackButton); }; // Text animations sloganMain.style.animation = 'textAscend 2.5s ease-out forwards'; sloganSub.style.animation = 'fadeIn 1.5s ease-out 2s forwards'; btn.style.animation = 'fadeIn 1.5s ease-out 2.8s forwards'; // Try play const tryPlay = () => { videoBackground.play().catch(showFallbackButton); }; videoBackground.addEventListener('loadeddata', tryPlay, { once: true }); if (videoBackground.readyState >= 2) tryPlay(); 
+
 };
 
-// IntersectionObserver genérico para revelar seções
-const observer = new IntersectionObserver((entries, obs) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      const id = entry.target.id;
-      entry.target.classList.add('section-visible');
-      inits[id]?.();
-      obs.unobserve(entry.target);
-    }
-  });
-}, { threshold: 0.4 });
+// === Seção 2: Globo 3D === sectionInitializers.initSection2 = function() { const texto = document.getElementById('neoTexto'); const sceneContainer = document.getElementById('scene-container-2'); if (sceneContainer.dataset.initialized === 'true') return; sceneContainer.dataset.initialized = 'true';
 
-// Observa todas as seções full-height
-document.querySelectorAll('.full-height-section').forEach(sec => observer.observe(sec));
+texto.classList.add('revealed'); const scene = new THREE.Scene(); const camera = new THREE.PerspectiveCamera(75, sceneContainer.clientWidth / sceneContainer.clientHeight, 0.1, 1000); camera.position.z = 4.5; const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); renderer.setSize(sceneContainer.clientWidth, sceneContainer.clientHeight); sceneContainer.appendChild(renderer.domElement); const globe = new THREE.Mesh( new THREE.IcosahedronGeometry(2.3, 2), new THREE.MeshPhongMaterial({ color: 0xffffff, wireframe: true, shininess: 100 }) ); scene.add(globe); const points = new THREE.Points( new THREE.SphereGeometry(2.32, 64, 64), new THREE.PointsMaterial({ color: 0x00aaff, size: 0.03, transparent: true, opacity: 0.7 }) ); scene.add(points); scene.add(new THREE.AmbientLight(0x8888ff, 0.6)); const light = new THREE.PointLight(0xffffff, 1.2); light.position.set(5,5,5); scene.add(light); window.addEventListener('resize', () => { camera.aspect = sceneContainer.clientWidth / sceneContainer.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(sceneContainer.clientWidth, sceneContainer.clientHeight); }); (function animate() { requestAnimationFrame(animate); globe.rotation.y += 0.002; points.rotation.y += 0.002; globe.rotation.x += 0.001; points.rotation.x += 0.001; renderer.render(scene, camera); })(); 
 
-// Seção 1: Vídeo de fundo e slogans animados
-function initSection1() {
-  const vid = document.getElementById('video-background-1');
-  if (vid.dataset.inited) return;
-  vid.dataset.inited = true;
+};
 
-  const slogans = [...document.querySelectorAll('.slogan-main, .slogan-sub, .btn')];
-  vid.addEventListener('loadeddata', () => {
-    vid.play().catch(() => {});
-    vid.classList.add('visible');
-    slogans.forEach((el, i) => setTimeout(() => el.classList.add('visible'), i * 500));
-  });
-  vid.load();
-}
+// === Seção 3: Vídeo + troca slogans === sectionInitializers.initSection3 = function() { const video = document.getElementById('videoBackground3'); const slogan1 = document.getElementById('slogan1'); const slogan2 = document.getElementById('slogan2'); const button = document.querySelector('.hero-section-3 .botao'); if (video.dataset.initialized === 'true') return; video.dataset.initialized = 'true';
 
-// Seção 2: Texto animado e globo 3D
-function initSection2() {
-  const txt = document.getElementById('neoTexto');
-  const container = document.getElementById('scene-container-2');
-  if (container.dataset.inited) return;
-  container.dataset.inited = true;
+const playVideo = () => { video.play().catch(() => {}); video.style.opacity = '1'; setTimeout(() => { slogan1.style.opacity = '0'; slogan1.style.transform = 'translateY(-20px)'; setTimeout(() => { slogan1.style.display = 'none'; slogan2.style.opacity = '1'; slogan2.style.transform = 'translateY(0)'; setTimeout(() => { button.style.opacity = '1'; button.style.transform = 'translateY(0)'; }, 1000); }, 800); }, 2500); }; video.addEventListener('loadeddata', playVideo, { once: true }); if (video.readyState >= 2) playVideo(); 
 
-  // Revela texto
-  setTimeout(() => txt.classList.add('revealed'), 300);
+};
 
-  // Setup Three.js: globo wireframe
-  const scene = new THREE.Scene();
-  const cam = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-  renderer.setSize(container.clientWidth, container.clientHeight);
-  container.appendChild(renderer.domElement);
-  cam.position.z = 3;
+// === Seção 4: Octaedros === sectionInitializers.initSection4 = function() { const canvas = document.getElementById('bg-canvas-4'); const title = document.getElementById('animated-title'); const subtitle = document.getElementById('section4-subtitle'); const button = document.querySelector('.secao-octahedrons-4 .cta-button'); if (canvas.dataset.initialized === 'true') return; canvas.dataset.initialized = 'true';
 
-  const globe = new THREE.Mesh(
-    new THREE.IcosahedronGeometry(1.5, 3),
-    new THREE.MeshPhongMaterial({ color: 0xffffff, wireframe: true })
-  );
-  scene.add(globe);
-  scene.add(new THREE.AmbientLight(0x888888));
-  const point = new THREE.PointLight(0xffffff, 1);
-  point.position.set(5, 5, 5);
-  scene.add(point);
+// Texto animado const lines = [ 'Magnológica.', 'Nós Somos o Coração', 'do Novo Poder' ]; let count = 0; lines.forEach((line, idx) => { const div = document.createElement('div'); line.split('').forEach(char => { const span = document.createElement('span'); span.textContent = char === ' ' ? '\u00A0' : char; span.style.setProperty('--i', count); div.appendChild(span); count++; }); if (idx > 0) div.classList.add('line-break'); title.appendChild(div); }); title.style.opacity = '1'; setTimeout(() => { subtitle.style.opacity = '1'; button.style.opacity = '1'; }, count * 30 + 500); // Three.js octaedros const scene = new THREE.Scene(); const cam = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000); const rnd = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true }); rnd.setSize(canvas.clientWidth, canvas.clientHeight); cam.position.z = 5; const geo = new THREE.OctahedronGeometry(1); const mat = new THREE.MeshStandardMaterial({ color: 0x111111, flatShading: true }); const o1 = new THREE.Mesh(geo, mat); const o2 = o1.clone(); o1.position.set(-1.8, 0, -1); o2.position.set(1.8, 0, -1); scene.add(o1, o2); scene.add(new THREE.AmbientLight(0xffffff, 0.5)); const dl = new THREE.DirectionalLight(0xffffff, 0.8); dl.position.set(5,5,5); scene.add(dl); window.addEventListener('resize', () => { cam.aspect = canvas.clientWidth / canvas.clientHeight; cam.updateProjectionMatrix(); rnd.setSize(canvas.clientWidth, canvas.clientHeight); }); (function anim() { requestAnimationFrame(anim); o1.rotation.y += 0.004; o1.rotation.x += 0.001; o2.rotation.y -= 0.004; o2.rotation.x -= 0.001; rnd.render(scene, cam); })(); 
 
-  function animate() {
-    globe.rotation.y += 0.003;
-    renderer.render(scene, cam);
-    requestAnimationFrame(animate);
-  }
-  animate();
+};
 
-  // Responsividade
-  window.addEventListener('resize', debounce(() => {
-    cam.aspect = container.clientWidth / container.clientHeight;
-    cam.updateProjectionMatrix();
-    renderer.setSize(container.clientWidth, container.clientHeight);
-  }, 200));
-}
+// === Seção 5: Dois takes === sectionInitializers.initSection5 = function() { const video = document.getElementById('bgVideo5'); const first = document.getElementById('firstTakeContent'); const second = document.getElementById('secondTakeContent'); const overlay = document.getElementById('transitionOverlay5'); if (video.dataset.initialized === 'true') return; video.dataset.initialized = 'true';
 
-// Seção 3: Vídeo + swap de slogans
-function initSection3() {
-  const vid = document.getElementById('videoBackground3');
-  if (vid.dataset.inited) return;
-  vid.dataset.inited = true;
+const playAndAnimate = () => { video.play().catch(() => {}); video.style.opacity = '1'; setTimeout(() => { first.classList.add('visible'); setTimeout(() => { overlay.classList.add('active'); setTimeout(() => { first.classList.remove('visible'); second.classList.add('visible'); setTimeout(() => overlay.classList.remove('active'), 500); }, 1500); }, 5000); }, 300); }; video.addEventListener('loadeddata', playAndAnimate, { once: true }); if (video.readyState >= 2) playAndAnimate(); video.addEventListener('ended', () => { video.currentTime = 0; video.play(); }); 
 
-  const slogans = [
-    document.getElementById('slogan1'),
-    document.getElementById('slogan2'),
-    document.querySelector('.botao')
-  ];
-  vid.addEventListener('loadeddata', () => {
-    vid.play().catch(() => {});
-    vid.classList.add('visible');
-    slogans.forEach((el, i) => setTimeout(() => el.classList.add('visible'), i * 600));
-  });
-  vid.load();
-}
+};
 
-// Seção 4: Octaedros 3D + texto estático
-function initSection4() {
-  const container = document.getElementById('bg-canvas-4');
-  if (container.dataset.inited) return;
-  container.dataset.inited = true;
+// Intersection Observer para ativar seções const sections = document.querySelectorAll('section.full-height-section'); const observerOptions = { root: null, rootMargin: '0px', threshold: 0.5 }; const sectionObserver = new IntersectionObserver((entries) => { entries.forEach(entry => { const id = entry.target.id; if (entry.isIntersecting) { entry.target.classList.add('section-visible'); const fn = 'init' + id.charAt(0).toUpperCase() + id.slice(1); sectionInitializers[fn]?.(); const vid = entry.target.querySelector('video'); if (vid && vid.paused) vid.play().catch(() => {}); } else { entry.target.classList.remove('section-visible'); const vid = entry.target.querySelector('video'); if (vid && !vid.paused) vid.pause(); } }); }, observerOptions); sections.forEach(sec => sectionObserver.observe(sec));
 
-  const scene = new THREE.Scene();
-  const cam = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-  const renderer = new THREE.WebGLRenderer({ canvas: container, alpha: true, antialias: true });
-  renderer.setSize(container.clientWidth, container.clientHeight);
-  cam.position.z = 4;
+document.addEventListener('DOMContentLoaded', () => { const s1 = document.getElementById('section1'); if (s1.getBoundingClientRect().top < window.innerHeight) { sectionInitializers.initSection1(); s1.classList.add('section-visible'); } });
 
-  // Cria vários octaedros
-  const group = new THREE.Group();
-  for (let i = 0; i < 30; i++) {
-    const geo = new THREE.OctahedronGeometry(0.3, 0);
-    const mat = new THREE.MeshStandardMaterial({ color: 0xffffff });
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set(
-      (Math.random() - 0.5) * 6,
-      (Math.random() - 0.5) * 6,
-      (Math.random() - 0.5) * 6
-    );
-    group.add(mesh);
-  }
-  scene.add(group);
-  scene.add(new THREE.AmbientLight(0x555555));
-  const pl = new THREE.PointLight(0xffffff, 1);
-  pl.position.set(10, 10, 10);
-  scene.add(pl);
+document.body.addEventListener('click', function() { document.querySelectorAll('video').forEach(v => { if (v.paused) v.play().catch(() => {}); }); }, { once: true });
 
-  function animate() {
-    group.rotation.x += 0.002;
-    group.rotation.y += 0.002;
-    renderer.render(scene, cam);
-    requestAnimationFrame(animate);
-  }
-  animate();
-
-  window.addEventListener('resize', debounce(() => {
-    cam.aspect = container.clientWidth / container.clientHeight;
-    cam.updateProjectionMatrix();
-    renderer.setSize(container.clientWidth, container.clientHeight);
-  }, 200));
-}
-
-// Seção 5: Alternância de takes e overlay de transição
-function initSection5() {
-  const vid = document.getElementById('bgVideo5');
-  if (vid.dataset.inited) return;
-  vid.dataset.inited = true;
-
-  const overlay = document.getElementById('transitionOverlay5');
-  const first = document.getElementById('firstTakeContent');
-  const second = document.getElementById('secondTakeContent');
-
-  vid.play().catch(() => {});
-  vid.classList.add('visible');
-
-  setTimeout(() => overlay.classList.add('active'), 2000);
-  setTimeout(() => {
-    overlay.classList.remove('active');
-    first.style.display = 'none';
-    second.style.display = 'block';
-  }, 3500);
-}
-
-// Função debounce
-function debounce(fn, ms = 100) {
-  let timeout;
-  return () => {
-    clearTimeout(timeout);
-    timeout = setTimeout(fn, ms);
-  };
-                                          }
